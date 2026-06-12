@@ -1,16 +1,15 @@
 from fantasmas import Fantasma
-
+        
 class Inky(Fantasma):
-
-    def __init__(self, direccion, posicion, modo,vida):
-
+    def __init__(self, direccion, posicion, modo, vida):
+        
         super().__init__(
-            "Inky",
-            direccion,
-            posicion,
-            (0, 255, 255),
-            modo,
-            1
+            "Inky", 
+            direccion, 
+            posicion, 
+            modo, 
+            vida, 
+            "assets/inki.png"
         )
 
     def elegir_target(self, pacman, blinky):
@@ -24,10 +23,6 @@ class Inky(Fantasma):
 
         vector_x = (tile_adelantado_x - blinky_x) * 2
         vector_y = (tile_adelantado_y - blinky_y) * 2
-
-
-
-
 
         target_x = blinky_x + vector_x
         target_y = blinky_y + vector_y
