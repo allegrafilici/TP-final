@@ -1,3 +1,5 @@
+from turtle import Screen
+
 import pygame
 
 
@@ -324,3 +326,14 @@ class Renderer:
         game loop, despues de haber dibujado absolutamente todo.
         """
         pygame.display.flip()
+        
+
+
+#Pantalla de inicio
+
+def pantalla_de_inicio():
+    Screen.fill(0,0,0)
+    
+    color_texto = (255, 255, 0)
+    fuente = pygame.font.SysFont(None, 50)
+    
