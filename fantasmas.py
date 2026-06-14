@@ -9,7 +9,6 @@ class Fantasma:
         self.posicion_inicial = posicion
         self.vida = vida
         
-        
         imagen_original = py.image.load(ruta_imagen).convert_alpha()
         self.imagen = py.transform.scale(imagen_original, (24, 24))
 
@@ -42,6 +41,19 @@ class Fantasma:
     def elegir_target(self, pacman, blinky=None):
         pass
 
+    def dibujar(self, pantalla, tamano_tile=20):
+        x = self.posicion[0] * tamano_tile + 3
+        y = self.posicion[1] * tamano_tile + 3
+        if self.modo == "asustado":
+            py.draw.circle(
+                pantalla,
+                (0, 0, 255),
+                (x + tamano_tile // 2, y + tamano_tile // 2),
+                tamano_tile // 2
+            )
+        else:
+            pantalla.blit(self.imagen, (x, y))
+
 
 class ScoreManager:
     def __init__(self):
@@ -51,20 +63,10 @@ class ScoreManager:
         self.nivel = 1
     
     def sumar_puntaje(self, cantidad):
-        self.puntaje += cantidad #cantidad como variable provisoria
+        self.puntaje += cantidad
         
     def restar_vidas(self):
         self.vidas -= 1
 
-    #el siguiente método solo puede llamarse 1 vez por partida(x la)
     def sumar_vidas(self):
         self.vidas += 1
-
-
-
-    
-
-
-
-
-

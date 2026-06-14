@@ -7,16 +7,14 @@ from pinky import *
 from clyde import *
 from inky import *
 from mapa import *
-from pacman import *
+from pacman import pacman
 from fantasmas import *
-from Ui import *
+from render import Renderer
 
 
 # inicialización
 py.init()
 tamaño_celda = 20
-
-ui = uimanager()
 
 config_tiles = {
     "X": {"tipo": "pared", "color": (0, 0, 255), "score": 0, "es_fijo": True, "es_solido": True},
@@ -37,9 +35,9 @@ alto_ventana = (mapa.filas * tamaño_celda) + ui_altura
 
 screen = py.display.set_mode((ancho_ventana, alto_ventana))
 
+renderer = Renderer(screen, tamaño_celda)
+
 score_manager = ScoreManager()
-py.font.init()
-fuente_score = py.font.SysFont("Arial", 24, bold=True)
 
 pos_pac, pos_bli, pos_pin, pos_ink, pos_cly = mapa.obtener_posiciones_iniciales()
 
@@ -83,37 +81,8 @@ while corriendo:
             elif evento.key == py.K_RIGHT:
                 pacman.cambiar_direccion((1, 0))
 
-    screen.fill((0, 0, 0))
-
-    # dibujar mapa
-    for fila in range(mapa.filas):
-        for columna in range(mapa.columnas):
-            tile = mapa.grilla[fila, columna]
-            x = columna * tamaño_celda
-            y = fila * tamaño_celda
-
-            if tile in mapa.tiles and mapa.tiles[tile]["color"]:
-                color = mapa.tiles[tile]["color"]
-                tipo = mapa.tiles[tile]["tipo"]
-
-                if tipo == "pared":
-                    py.draw.rect(screen, color, (x, y, tamaño_celda, tamaño_celda))
-
-                elif tipo == "punto":
-                    py.draw.circle(
-                        screen,
-                        color,
-                        (x + tamaño_celda // 2, y + tamaño_celda // 2),
-                        3
-                    )
-
-                elif tipo == "punto de poder":
-                    py.draw.circle(
-                        screen,
-                        color,
-                        (x + tamaño_celda // 2, y + tamaño_celda // 2),
-                        7
-                    )
+    renderer.limpiar_pantalla()
+    renderer.dibujar_mapa(mapa.grilla)
 
     tiempo_acumulado += dt
 
@@ -190,35 +159,10 @@ while corriendo:
 
         tiempo_acumulado -= tiempo_por_paso
 
-    # render Pac-Man
-    x_pac = pacman.posicion[0] * tamaño_celda + 3
-    y_pac = pacman.posicion[1] * tamaño_celda + 3
-    screen.blit(pacman.imagen, (x_pac, y_pac))
-
-    # render fantasmas
-    for f in fantasmas:
-        x_fantasma = f.posicion[0] * tamaño_celda + 3
-        y_fantasma = f.posicion[1] * tamaño_celda + 3
-
-        if f.modo == "asustado":
-            py.draw.circle(
-                screen,
-                (0, 0, 255),
-                (x_fantasma + tamaño_celda // 2, y_fantasma + tamaño_celda // 2),
-                tamaño_celda // 2
-            )
-        else:
-            screen.blit(f.imagen, (x_fantasma, y_fantasma))
-
-    # UI score
-    y_pos_ui = mapa.filas * tamaño_celda + 10
-    texto_puntaje = fuente_score.render(
-        f"SCORE: {score_manager.puntaje}",
-        True,
-        (255, 255, 255)
-    )
-    screen.blit(texto_puntaje, (20, y_pos_ui))
-
-    py.display.flip()
+    # render
+    renderer.dibujar_pacman(pacman)
+    renderer.dibujar_fantasmas(fantasmas)
+    renderer.dibujar_hud(score_manager.puntaje, score_manager.high_score, score_manager.vidas, score_manager.nivel)
+    renderer.actualizar_pantalla()
 
 py.quit()
