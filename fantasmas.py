@@ -1,13 +1,25 @@
 import pygame as py
 
 class Fantasma:
-    def __init__(self, nombre, direccion, posicion, modo, vida, ruta_imagen):
+    def __init__(self, nombre, direccion, posicion, modo, vida, ruta_imagen, velocidad=0.75):
         self.nombre           = nombre
         self.direccion        = direccion
         self.posicion         = posicion
         self.modo             = modo
         self.posicion_inicial = posicion
         self.vida             = vida
+
+        # Velocidad del fantasma como porcentaje de la velocidad máxima.
+        #
+        # 0.75 = velocidad normal (75%)
+        # 0.50 = velocidad asustado (50%)
+        #
+        # La voy a cambiar automáticamente cuando cambie de modo.
+        self.velocidad = velocidad
+
+        # Acumula movimiento para poder tener velocidades distintas
+        # sin modificar todo el sistema de tiempo del juego.
+        self.contador_movimiento = 0
 
         imagen_original = py.image.load(ruta_imagen).convert_alpha()
         self.imagen     = py.transform.scale(imagen_original, (24, 24))
@@ -104,6 +116,11 @@ class Fantasma:
         self.frame_actual    = 0
         self.contador_animacion = 0
         self.parpadeando     = False
+        if modo_nuevo == "asustado":
+            self.velocidad = 0.50
+        else:
+            self.velocidad = 0.75 
+        #cuando cambia el modo del fantasma ajustamos la velocidad
 
     def reiniciar(self):
         """Reseteo completo: posicion, modo, estado visual."""

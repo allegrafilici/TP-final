@@ -26,7 +26,7 @@ config_tiles = {
     "o": {"tipo": "punto de poder", "color": (255,255,255), "score": 50, "es_fijo": False, "es_solido": False},
     " ": {"tipo": "pasillo vacio",  "color": (0,0,0),       "score": 0,  "es_fijo": True,  "es_solido": False},
     "G": {"tipo": "ghost house",    "color": None,          "score": 0,  "es_fijo": True,  "es_solido": False},
-    "-": {"tipo": "puerta",         "color": None,          "score": 0,  "es_fijo": True,  "es_solido": True},
+    "-": {"tipo": "puerta",         "color": None,          "score": 0,  "es_fijo": True,  "es_solido": False},
     "P": {"tipo": "pos pac",        "color": None,          "score": 0,  "es_fijo": True,  "es_solido": False},
     "T": {"tipo": "tunel",          "color": None,          "score": 0,  "es_fijo": True,  "es_solido": False},
 }
@@ -251,9 +251,19 @@ viajes = []
 
 duracion_aparicion = 0.5  
 
-reloj            = py.time.Clock()
+reloj = py.time.Clock()
+VELOCIDAD_MAXIMA = 7.5 # vamos a tomar 7.5 tiles por segudo como el 100% de la velocidad maxima
+
+TIEMPO_PACMAN_NORMAL = 1 / (VELOCIDAD_MAXIMA * 0.80) #pacman normal se mueve al 80% de 7.5
+TIEMPO_PACMAN_POWER = 1 / (VELOCIDAD_MAXIMA * 0.90) #pacman power se mueve al 90 % 
+
+TIEMPO_FANTASMA_NORMAL = 1 / (VELOCIDAD_MAXIMA * 0.75) #el fantasma normal se mueve al 75%
+TIEMPO_FANTASMA_ASUSTADO = 1 / (VELOCIDAD_MAXIMA * 0.50) #en el modo assustado los fantasmas se mueven a 50% de la velocidad maixma
+
 tiempo_acumulado = 0.0
-tiempo_por_paso  = 0.15
+
+# Tiempo base del juego.
+tiempo_por_paso = 0.15
 
 timer_muerte     = 0.0
 duracion_muerte  = 1.5
@@ -408,14 +418,21 @@ while corriendo:
 
                         if mejor:
                             f.cambiar_direccion(mejor)
+                            nc = f.posicion[0] + f.direccion[0]
+                            nf = f.posicion[1] + f.direccion[1]
+                            
+                            if not es_solido_para_fantasma(nf, nc):
+                                f.contador_movimiento += f.velocidad
+                                
+                                if f.contador_movimiento >= 1:
+                                    f.movimiento()
+                                    f.contador_movimiento -= 1
+                                    
+                            if verificar_colision_pacman_fantasma(pacman, f):
+                                colision_resuelta = resolver_colision(f)
+                            
 
-                        nc = f.posicion[0] + f.direccion[0]
-                        nf = f.posicion[1] + f.direccion[1]
-                        if not es_solido_para_fantasma(nf, nc):
-                            f.movimiento()
-
-                        if verificar_colision_pacman_fantasma(pacman, f):
-                            colision_resuelta = resolver_colision(f)
+                        
                             if colision_resuelta:
                                 break
 
