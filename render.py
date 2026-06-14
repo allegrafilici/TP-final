@@ -324,3 +324,25 @@ class Renderer:
         game loop, despues de haber dibujado absolutamente todo.
         """
         pygame.display.flip()
+        
+def pantalla_de_inicio():
+# 1. Creás tu propia función para simplificar el proceso
+    def imprimir_texto(superficie, texto, x, y, tamaño=32, color=(255, 255, 255)):
+        fuente = pygame.font.SysFont(None, tamaño)
+        texto_renderizado = fuente.render(texto, True, color)
+        superficie.blit(texto_renderizado, (x, y))
+
+    ejecutando = True
+    while ejecutando:
+        for evento in pygame.event.get():
+            if evento.type == pygame.QUIT:
+                ejecutando = False
+            
+        Screen.fill((30, 30, 30))
+    
+        # 2. Ahora usás tu función como si fuera un print en la pantalla
+        imprimir_texto(pantalla, "Primer línea impresa", 50, 50)
+        imprimir_texto(pantalla, "Segunda línea impresa más abajo", 50, 100, tamaño=48, color=(255, 100, 100))
+    
+    pygame.display.flip()
+
