@@ -12,10 +12,9 @@ from mapa import *
 from pacman import pacman
 from fantasmas import *
 from render import Renderer
+from nivel import verificar_nivel_completo, subir_nivel
 
-print("EMPEZO EL MAIN")
 
-# inicialización
 py.init()
 tamaño_celda = 20
 
@@ -37,17 +36,14 @@ ancho_ventana = mapa.columnas * tamaño_celda
 alto_ventana = (mapa.filas * tamaño_celda) + ui_altura
 
 screen = py.display.set_mode((ancho_ventana, alto_ventana))
-
 renderer = Renderer(screen, tamaño_celda)
 
 score_manager = ScoreManager()
 
 pos_pac, pos_bli, pos_pin, pos_ink, pos_cly, pos_patan, pos_negui = mapa.obtener_posiciones_iniciales()
 
-# inicializamos Pac-Man
 pacman = pacman(pos_pac)
 
-# inicializamos fantasmas
 blinky = Blinky(direccion=(1, 0), posicion=pos_bli, modo="scatter", vida=1)
 pinky = Pinky(direccion=(0, -1), posicion=pos_pin, modo="scatter", vida=1)
 inky = Inky(direccion=(1, 0), posicion=pos_ink, modo="scatter", vida=1)
@@ -57,12 +53,10 @@ negui = Negui(direccion=(0, -1), posicion=pos_negui, modo="scatter", vida=1)
 
 fantasmas = [blinky, pinky, inky, clyde, patan, negui]
 
-# variables del modo asustado
 modo_asustado = False
 contador_tiempo_asustado = 0
 duracion_modo_asustado = 8
 
-# tiempo
 reloj = py.time.Clock()
 tiempo_acumulado = 0.0
 tiempo_por_paso = 0.15
@@ -93,7 +87,6 @@ while corriendo:
 
     if tiempo_acumulado >= tiempo_por_paso:
 
-        # controlar duración del modo asustado
         if modo_asustado:
             contador_tiempo_asustado += tiempo_por_paso
 
@@ -104,7 +97,6 @@ while corriendo:
                 for f in fantasmas:
                     f.cambiar_modo("scatter")
 
-        # movimiento Pac-Man
         prox_col = pacman.posicion[0] + pacman.proxima_direccion[0]
         prox_fila = pacman.posicion[1] + pacman.proxima_direccion[1]
 
@@ -117,7 +109,6 @@ while corriendo:
         if not mapa.es_solido(nueva_fila, nueva_col):
             pacman.movimiento()
 
-            # comer puntos
             col_actual, fila_actual = pacman.posicion
             tile_actual = mapa.grilla[fila_actual, col_actual]
 
@@ -129,14 +120,12 @@ while corriendo:
                 score_manager.sumar_puntaje(mapa.tiles["o"]["score"])
                 mapa.actualizar_celda(fila_actual, col_actual, " ")
 
-                # activar modo asustado
                 modo_asustado = True
                 contador_tiempo_asustado = 0
 
                 for f in fantasmas:
                     f.cambiar_modo("asustado")
 
-        # movimiento fantasmas
         for f in fantasmas:
 
             if f.modo == "asustado":
@@ -164,10 +153,46 @@ while corriendo:
 
         tiempo_acumulado -= tiempo_por_paso
 
-    # render
+        if verificar_nivel_completo(mapa):
+            tiempo_por_paso = subir_nivel(score_manager, mapa, tiempo_por_paso)
+
+            modo_asustado = False
+            contador_tiempo_asustado = 0
+
+            pos_pac, pos_bli, pos_pin, pos_ink, pos_cly, pos_patan, pos_negui = mapa.obtener_posiciones_iniciales()
+
+            pacman.posicion = pos_pac
+            pacman.direccion = (1, 0)
+
+            blinky.posicion = pos_bli
+            blinky.direccion = (1, 0)
+
+            pinky.posicion = pos_pin
+            pinky.direccion = (0, -1)
+
+            inky.posicion = pos_ink
+            inky.direccion = (1, 0)
+
+            clyde.posicion = pos_cly
+            clyde.direccion = (-1, 0)
+
+            patan.posicion = pos_patan
+            patan.direccion = (0, 1)
+
+            negui.posicion = pos_negui
+            negui.direccion = (0, -1)
+
+            for f in fantasmas:
+                f.cambiar_modo("scatter")
+
     renderer.dibujar_pacman(pacman)
     renderer.dibujar_fantasmas(fantasmas)
-    renderer.dibujar_hud(score_manager.puntaje, score_manager.high_score, score_manager.vidas, score_manager.nivel)
+    renderer.dibujar_hud(
+        score_manager.puntaje,
+        score_manager.high_score,
+        score_manager.vidas,
+        score_manager.nivel
+    )
     renderer.actualizar_pantalla()
 
 py.quit()
