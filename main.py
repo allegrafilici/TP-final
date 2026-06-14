@@ -52,6 +52,20 @@ patan = Patan(direccion=(0, 1), posicion=pos_patan, modo="scatter", vida=1)
 negui = Negui(direccion=(0, -1), posicion=pos_negui, modo="scatter", vida=1)
 
 fantasmas = [blinky, pinky, inky, clyde, patan, negui]
+def es_solido_para_fantasma(fila, col):
+    """
+    Verifica si una celda es sólida para los fantasmas.
+
+    Los fantasmas pueden pasar por la puerta de la ghost house "-",
+    pero Pac-Man no.
+    """
+    if fila < 0 or fila >= mapa.filas or col < 0 or col >= mapa.columnas:
+        return True
+
+    if mapa.grilla[fila, col] == "-":
+        return False
+
+    return mapa.es_solido(fila, col)
 
 modo_asustado = False
 contador_tiempo_asustado = 0
