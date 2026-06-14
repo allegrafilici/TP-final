@@ -268,6 +268,8 @@ timer_cortina    = 0.0
 duracion_cortina = 1.2
 es_ultima_vida   = False
 
+vida_extra_otorgada = False
+
 corriendo = True
 sonido_inicio.play()
 
@@ -442,12 +444,16 @@ while corriendo:
 
                 tiempo_acumulado -= tiempo_por_paso
 
+                if not vida_extra_otorgada and score_manager.puntaje >= 10000:
+                    score_manager.vidas += 1
+                    sonido_vida_extra.play()
+                    vida_extra_otorgada = True
+                    popups.append({"pos": pacman.posicion, "timer": 0.0, "texto": "1UP!"})
+
                 if not colision_resuelta and verificar_nivel_completo(mapa):
                     py.mixer.stop()
-                    
                     tiempo_por_paso = subir_nivel(score_manager, mapa, tiempo_por_paso)
                     resetear_nivel()
-                    
                     sonido_sirena_loop.play(-1)
 
             if modo_asustado:
