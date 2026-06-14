@@ -174,13 +174,24 @@ class Fantasma:
 
 class ScoreManager:
     def __init__(self):
-        self.puntaje = 0 
-        self.high_score = 0 
-        self.vidas = 3 
+        self.puntaje = 0
+
+        try:
+            with open("highscore.txt", "r") as archivo:
+                self.high_score = int(archivo.read())
+        except:
+            self.high_score = 0
+
+        self.vidas = 3
         self.nivel = 1
     
     def sumar_puntaje(self, cantidad):
         self.puntaje += cantidad
+        
+        if self.puntaje > self.high_score:
+            self.high_score = self.puntaje
+            with open("highscore.txt", "w") as archivo:
+                archivo.write(str(self.high_score))
         
     def restar_vidas(self):
         self.vidas -= 1
