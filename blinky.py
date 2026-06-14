@@ -1,17 +1,14 @@
 from fantasmas import Fantasma
-
-
+    
 class Blinky(Fantasma):
-
     def __init__(self, direccion, posicion, modo, vida):
-
         super().__init__(
-            "Blinky",
-            direccion,
-            posicion,
-            (255, 0, 0),
-            modo,
-            vida
+            "Blinky", 
+            direccion, 
+            posicion, 
+            modo, 
+            vida, 
+            "assets/blinki.png"
         )
 
     def elegir_target(self, pacman):
