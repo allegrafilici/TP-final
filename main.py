@@ -62,7 +62,8 @@ fantasmas = []
 # ===========================================================================
 
 def es_solido_para_fantasma(fila, col):
-    if fila < 0 or fila >= mapa.filas or col < 0 or col >= mapa.columnas:
+    col %= mapa.columnas  # El secreto para conectar los bordes
+    if fila < 0 or fila >= mapa.filas:
         return True
     if mapa.grilla[fila, col] == "-":
         return False
@@ -94,8 +95,8 @@ def encontrar_camino(inicio, destino):
             return camino
 
         for dc, df in [(1,0), (-1,0), (0,1), (0,-1)]:
-            vecino = (col + dc, fila + df)
-            if vecino not in padres and not es_solido_para_fantasma(fila + df, col + dc):
+            vecino = ((col + dc) % mapa.columnas, fila + df)
+            if vecino not in padres and not es_solido_para_fantasma(fila + df, vecino[0]):
                 padres[vecino] = actual
                 cola.append(vecino)
 
@@ -108,14 +109,14 @@ def elegir_mejor_direccion(fantasma, target_x, target_y):
     menor_dist = float("inf")
     for dir in [(1,0),(-1,0),(0,1),(0,-1)]:
         if dir == opuesta: continue
-        nc = fantasma.posicion[0] + dir[0]
+        nc = (fantasma.posicion[0] + dir[0]) % mapa.columnas
         nf = fantasma.posicion[1] + dir[1]
         if es_solido_para_fantasma(nf, nc): continue
         dist = (nc-target_x)**2 + (nf-target_y)**2
         if dist < menor_dist:
             menor_dist = dist; mejor_dir = dir
     if mejor_dir is None:
-        nc = fantasma.posicion[0] + opuesta[0]
+        nc = (fantasma.posicion[0] + opuesta[0]) % mapa.columnas
         nf = fantasma.posicion[1] + opuesta[1]
         if not es_solido_para_fantasma(nf, nc):
             mejor_dir = opuesta
@@ -128,14 +129,14 @@ def elegir_direccion_huyendo(fantasma, pac_x, pac_y):
     mayor_dist = -1
     for dir in [(1,0),(-1,0),(0,1),(0,-1)]:
         if dir == opuesta: continue
-        nc = fantasma.posicion[0] + dir[0]
+        nc = (fantasma.posicion[0] + dir[0]) % mapa.columnas
         nf = fantasma.posicion[1] + dir[1]
         if es_solido_para_fantasma(nf, nc): continue
         dist = (nc-pac_x)**2 + (nf-pac_y)**2
         if dist > mayor_dist:
             mayor_dist = dist; mejor_dir = dir
     if mejor_dir is None:
-        nc = fantasma.posicion[0] + opuesta[0]
+        nc = (fantasma.posicion[0] + opuesta[0]) % mapa.columnas
         nf = fantasma.posicion[1] + opuesta[1]
         if not es_solido_para_fantasma(nf, nc):
             mejor_dir = opuesta
@@ -367,16 +368,16 @@ while corriendo:
                             if not f.oculto:   
                                 f.cambiar_modo("scatter")
 
-                prox_col  = pacman.posicion[0] + pacman.proxima_direccion[0]
+                prox_col  = (pacman.posicion[0] + pacman.proxima_direccion[0]) % mapa.columnas
                 prox_fila = pacman.posicion[1] + pacman.proxima_direccion[1]
                 if not mapa.es_solido(prox_fila, prox_col):
                     pacman.direccion = pacman.proxima_direccion
 
-                nueva_col  = pacman.posicion[0] + pacman.direccion[0]
+                nueva_col  = (pacman.posicion[0] + pacman.direccion[0]) % mapa.columnas
                 nueva_fila = pacman.posicion[1] + pacman.direccion[1]
 
                 if not mapa.es_solido(nueva_fila, nueva_col):
-                    pacman.movimiento()
+                    pacman.movimiento(mapa.columnas)
                     pacman.se_movio = True
 
                     col_a, fila_a = pacman.posicion
@@ -432,10 +433,10 @@ while corriendo:
                         if mejor:
                             f.cambiar_direccion(mejor)
 
-                        nc = f.posicion[0] + f.direccion[0]
+                        nc = (f.posicion[0] + f.direccion[0]) % mapa.columnas
                         nf = f.posicion[1] + f.direccion[1]
                         if not es_solido_para_fantasma(nf, nc):
-                            f.movimiento()
+                            f.movimiento(mapa.columnas)
 
                         if verificar_colision_pacman_fantasma(pacman, f):
                             colision_resuelta = resolver_colision(f)

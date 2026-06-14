@@ -91,10 +91,12 @@ class Fantasma:
 
         return animaciones
 
-    def movimiento(self):
+    def movimiento(self, limite_columnas=None):
         col, fila = self.posicion
-        self.posicion = (col + self.direccion[0], fila + self.direccion[1])
-        self.actualizar_animacion()
+        nueva_col = col + self.direccion[0]
+        if limite_columnas is not None:
+            nueva_col %= limite_columnas
+        self.posicion = (nueva_col, fila + self.direccion[1])
 
     def cambiar_direccion(self, nueva_direccion):
         self.direccion = nueva_direccion

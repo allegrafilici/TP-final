@@ -33,9 +33,12 @@ class pacman:
     def cambiar_direccion(self, nueva_direccion):
         self.proxima_direccion = nueva_direccion
 
-    def movimiento(self):
+    def movimiento(self, limite_columnas=None):
         col, fila = self.posicion
-        self.posicion = (col + self.direccion[0], fila + self.direccion[1])
+        nueva_col = col + self.direccion[0]
+        if limite_columnas is not None:
+            nueva_col %= limite_columnas
+        self.posicion = (nueva_col, fila + self.direccion[1])
 
     def animar_boca(self):
         """
