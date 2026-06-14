@@ -8,6 +8,7 @@ class Fantasma:
         self.modo             = modo
         self.posicion_inicial = posicion
         self.vida             = vida
+        self.saliendo_casa = True
 
         # Velocidad del fantasma como porcentaje de la velocidad máxima.
         #
@@ -50,6 +51,13 @@ class Fantasma:
         self.oculto             = False
         self.apareciendo        = False
         self.progreso_aparicion = 0.0
+
+    def salir_de_casa(self):
+        col, fila = self.posicion
+        if fila > 11:
+            self.direccion = (0, -1)
+        else:
+            self.saliendo_casa = False
 
     def cargar_imagen(self, ruta):
         imagen = py.image.load(ruta).convert_alpha()
