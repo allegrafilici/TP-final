@@ -6,6 +6,8 @@ from blinky import *
 from pinky import *
 from clyde import *
 from inky import *
+from patan import Patan
+from negui import Negui
 from mapa import *
 from pacman import pacman
 from fantasmas import *
@@ -39,7 +41,7 @@ renderer = Renderer(screen, tamaño_celda)
 
 score_manager = ScoreManager()
 
-pos_pac, pos_bli, pos_pin, pos_ink, pos_cly = mapa.obtener_posiciones_iniciales()
+pos_pac, pos_bli, pos_pin, pos_ink, pos_cly, pos_patan, pos_negui = mapa.obtener_posiciones_iniciales()
 
 # inicializamos Pac-Man
 pacman = pacman(pos_pac)
@@ -49,8 +51,10 @@ blinky = Blinky(direccion=(1, 0), posicion=pos_bli, modo="scatter", vida=1)
 pinky = Pinky(direccion=(0, -1), posicion=pos_pin, modo="scatter", vida=1)
 inky = Inky(direccion=(1, 0), posicion=pos_ink, modo="scatter", vida=1)
 clyde = Clyde(direccion=(-1, 0), posicion=pos_cly, modo="scatter", vida=1)
+patan = Patan(direccion=(0, 1), posicion=pos_patan, modo="scatter", vida=1)
+negui = Negui(direccion=(0, -1), posicion=pos_negui, modo="scatter", vida=1)
 
-fantasmas = [blinky, pinky, inky, clyde]
+fantasmas = [blinky, pinky, inky, clyde, patan, negui]
 
 # variables del modo asustado
 modo_asustado = False
