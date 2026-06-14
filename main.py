@@ -11,6 +11,7 @@ from pacman import pacman
 from fantasmas import *
 from render import Renderer
 
+print("EMPEZO EL MAIN")
 
 # inicialización
 py.init()
