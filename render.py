@@ -325,24 +325,14 @@ class Renderer:
         """
         pygame.display.flip()
         
-def pantalla_de_inicio():
-# 1. Creás tu propia función para simplificar el proceso
-    def imprimir_texto(superficie, texto, x, y, tamaño=32, color=(255, 255, 255)):
-        fuente = pygame.font.SysFont(None, tamaño)
-        texto_renderizado = fuente.render(texto, True, color)
-        superficie.blit(texto_renderizado, (x, y))
 
-    ejecutando = True
-    while ejecutando:
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT:
-                ejecutando = False
-            
-        Screen.fill((30, 30, 30))
-    
-        # 2. Ahora usás tu función como si fuera un print en la pantalla
-        imprimir_texto(pantalla, "Primer línea impresa", 50, 50)
-        imprimir_texto(pantalla, "Segunda línea impresa más abajo", 50, 100, tamaño=48, color=(255, 100, 100))
-    
-    pygame.display.flip()
 
+
+#sonidos
+pygame.mixer.init()
+sonido_muerte = pygame.mixer.Sound("assets/sonido/pacman-dies.mp3")
+sonido_vida_extra = pygame.mixer.Sound("assets/sonido/pacman-extra-live.mp3")
+sonido_sirena_loop = pygame.mixer.Sound("assets/sonido/pacman-siren.mp3")
+sonido_inicio = pygame.mixer.Sound("assets/sonido/inicio_pacman.mp3")
+sonido_comer = pygame.mixer.Sound("assets/sonido/pacman_comer.MP3")
+sonido_power_pallet = pygame.mixer.Sound("assets/sonido/power_pallet.mp3")
