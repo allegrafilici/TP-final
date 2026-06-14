@@ -12,11 +12,13 @@ from negui import Negui
 from mapa import *
 from pacman import pacman
 from fantasmas import *
-from render import Renderer
+from render import *
 from nivel import verificar_nivel_completo, subir_nivel
 
 
 py.init()
+py.mixer.init()
+
 tamaño_celda = 20
 fuente_popup = py.font.SysFont(None, 26)
 
@@ -173,6 +175,11 @@ def resolver_colision(f):
         return False
 
     else:
+        # Freno sonidos de ambiente y reproduzco muerte
+        sonido_sirena_loop.stop()
+        sonido_power_pallet.stop()
+        sonido_muerte.play()
+        
         score_manager.restar_vidas()
         es_ultima_vida         = score_manager.vidas <= 0
         estado                 = "muriendo"
@@ -262,6 +269,7 @@ duracion_cortina = 1.2
 es_ultima_vida   = False
 
 corriendo = True
+sonido_inicio.play()
 
 
 # ===========================================================================
@@ -313,6 +321,7 @@ while corriendo:
                             
                             fantasmas = fantasmas_activos  # Sobrescribimos la lista global
                             estado = "jugando"
+                            sonido_sirena_loop.play(-1)  # Arranca la sirena
                         break
 
     # =========================================================================
@@ -337,7 +346,6 @@ while corriendo:
         # ESTADO: JUGANDO
         # =========================================================================
         if estado == "jugando":
-
             tiempo_acumulado += dt
 
             if tiempo_acumulado >= tiempo_por_paso:
@@ -348,6 +356,11 @@ while corriendo:
                         modo_asustado              = False
                         contador_tiempo_asustado   = 0
                         contador_fantasmas_comidos = 0
+                        
+                        # Frenar power pallet, retomar sirena
+                        sonido_power_pallet.stop()
+                        sonido_sirena_loop.play(-1)
+                        
                         for f in fantasmas:
                             if not f.oculto:   
                                 f.cambiar_modo("scatter")
@@ -370,10 +383,18 @@ while corriendo:
                     if tile == ".":
                         score_manager.sumar_puntaje(mapa.tiles["."]["score"])
                         mapa.actualizar_celda(fila_a, col_a, " ")
+                        
+                        if not modo_asustado:
+                            sonido_comer.play()
 
                     elif tile == "o":
                         score_manager.sumar_puntaje(mapa.tiles["o"]["score"])
                         mapa.actualizar_celda(fila_a, col_a, " ")
+                        
+                        if not modo_asustado:
+                            sonido_sirena_loop.stop()
+                            sonido_power_pallet.play(-1)
+                            
                         modo_asustado              = True
                         contador_tiempo_asustado   = 0
                         contador_fantasmas_comidos = 0
@@ -422,8 +443,12 @@ while corriendo:
                 tiempo_acumulado -= tiempo_por_paso
 
                 if not colision_resuelta and verificar_nivel_completo(mapa):
+                    py.mixer.stop()
+                    
                     tiempo_por_paso = subir_nivel(score_manager, mapa, tiempo_por_paso)
                     resetear_nivel()
+                    
+                    sonido_sirena_loop.play(-1)
 
             if modo_asustado:
                 tr = duracion_modo_asustado - contador_tiempo_asustado
@@ -512,6 +537,7 @@ while corriendo:
                 else:
                     respawn_jugador()
                     estado = "jugando"
+                    sonido_sirena_loop.play(-1)  # Retomar la sirena luego de respawnear
 
             renderer.dibujar_pacman(pacman)
             renderer.dibujar_hud(score_manager.puntaje, score_manager.high_score,
@@ -544,4 +570,6 @@ while corriendo:
 
         renderer.actualizar_pantalla()
 
+# Cortar todos los sonidos al salir
+py.mixer.stop()
 py.quit()

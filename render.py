@@ -253,3 +253,13 @@ class Renderer:
         Muestra en la ventana todo lo dibujado en este frame.
         """
         pygame.display.flip()
+        
+
+#sonidos
+pygame.mixer.init()
+sonido_muerte = pygame.mixer.Sound("assets/sonido/pacman-dies.mp3")
+sonido_vida_extra = pygame.mixer.Sound("assets/sonido/pacman-extra-live.mp3")
+sonido_sirena_loop = pygame.mixer.Sound("assets/sonido/pacman-siren.mp3")
+sonido_inicio = pygame.mixer.Sound("assets/sonido/inicio_pacman.mp3")
+sonido_comer = pygame.mixer.Sound("assets/sonido/pacman_comer.MP3")
+sonido_power_pallet = pygame.mixer.Sound("assets/sonido/power_pallet.mp3")
