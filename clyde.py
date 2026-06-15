@@ -1,17 +1,16 @@
 #logica de clyde seria si esta lejos lo persigue al pacman 
 # si esta cerca se escapa  # para poder caluclar la distancia entre el pacman y clyde 
 from fantasmas import Fantasma
-
+        
 class Clyde(Fantasma):
-    def __init__(self, direccion, posicion, modo,vida):
-
+    def __init__(self, direccion, posicion, modo, vida):
         super().__init__(
-            "Clyde",
-            direccion,
-            posicion,
-            (255, 165, 0),
-            modo,
-            1
+            "Clyde", 
+            direccion, 
+            posicion, 
+            modo, 
+            vida, 
+            "assets/clyde.png"
         )
 
     def elegir_target(self,pacman):
