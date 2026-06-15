@@ -25,7 +25,7 @@ class Mapa:
 
         lineas_mapa = mapa_texto.strip().split("\n")
 
-        # ── VALIDACION 1: todas las filas tienen el mismo largo ────────────
+        # Validacion 1: todas las filas tienen el mismo largo 
         largo_primera_fila = len(lineas_mapa[0])
         for numero_fila, linea in enumerate(lineas_mapa):
             if len(linea) != largo_primera_fila:
@@ -35,7 +35,7 @@ class Mapa:
                     f"{largo_primera_fila} (igual que la fila 0)."
                 )
 
-        # ── VALIDACION 2 y 3: caracteres validos, P y - presentes ─────────
+        # Validacion 2 y 3: caracteres validos, P y - presentes
         caracteres_validos = set("X.o G-PT")
         hay_pacman  = False
         hay_puerta  = False

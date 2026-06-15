@@ -114,9 +114,9 @@ class Fantasma:
 
         En el Pac-Man original, los fantasmas invierten su direccion
         inmediatamente cada vez que cambian de modo (scatter → chase
-        o chase → scatter). Esto se logra negando dx y dy:
-            derecha (1,0)  → izquierda (-1,0)
-            arriba  (0,-1) → abajo     (0,1)
+        o chase = scatter) = Esto se logra negando dx y dy:
+            derecha (1,0)  = izquierda (-1,0)
+            arriba  (0,-1) = abajo     (0,1)
         """
         self.direccion = (-self.direccion[0], -self.direccion[1])
 
