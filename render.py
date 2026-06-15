@@ -6,7 +6,7 @@ class Renderer:
     """
     Es la clase encargada de DIBUJAR absolutamente todo lo visual del juego.
 
-    Pensemos al Renderer como "el dibujante" o "el pintor" del juego. Ninguna otra
+    Pensemos al Renderer como "el pintor" del juego. Ninguna otra
     clase deberia tocar la pantalla directamente, todo lo visual pasa por aca.
     Esto se hace asi a proposito y tiene nombre: "separacion de responsabilidades".
     La idea es que cada clase tenga UN solo trabajo:
@@ -18,9 +18,9 @@ class Renderer:
     juego, el tamaño de la letra del puntaje o como se ve el laberinto, tocamos
     UN solo archivo (este) y no andamos rompiendo el codigo de los demas integrantes.
 
-    Concepto clave: TILES (casilleros)
+    Concepto clave: TILES! (casilleros)
     El mapa del juego NO se piensa en pixeles sueltos, sino en una grilla de
-    casilleros cuadrados llamados "tiles". El mapa de Pac-Man es una grilla de
+    casilleros cuadrados llamados "tiles". El mapa de Pacma+n es una grilla de
     28 tiles de ancho por 31 de alto. Cada tile mide, por ejemplo, 20x20 pixeles.
     El trabajo del Renderer es TRADUCIR esos casilleros (fila, columna) a pixeles
     (x, y) reales en la pantalla para poder dibujarlos.
@@ -86,7 +86,7 @@ class Renderer:
                     pygame.draw.circle(self.pantalla, self.colores["blanco"], (centro_x, centro_y), 7)
 
     def dibujar_pacman(self, pacman):
-        """Delega el dibujo al propio Pac-Man, pasandole nuestra pantalla."""
+        """Delega el dibujo al propio Pacman, pasandole nuestra pantalla."""
         pacman.dibujar(self.pantalla)
 
     def dibujar_fantasmas(self, fantasmas):
@@ -152,7 +152,7 @@ class Renderer:
         tiempo = pygame.time.get_ticks()
         pulso = (math.sin(tiempo * 0.005) + 1) / 2  # Oscila suavemente entre 0.0 y 1.0
         
-        # Instrucción superior
+        # Instrucci´n superior
         esquina_texto = esquinas_nombres[esquina_actual_idx] if esquina_actual_idx < 4 else "¡Listo!"
         txt_titulo = fuente_tit.render(f"Asignar esquina: {esquina_texto}", True, self.colores["celeste"])
         self.pantalla.blit(txt_titulo, (ancho // 2 - txt_titulo.get_width() // 2, 35))
@@ -160,7 +160,7 @@ class Renderer:
         txt_ayuda = fuente_txt.render("Hace clic sobre un fantasma para asignarlo", True, (180, 180, 180))
         self.pantalla.blit(txt_ayuda, (ancho // 2 - txt_ayuda.get_width() // 2, 75))
         
-        # Posición del mouse para efectos Hover
+        # Posicion del mouse para efectos Hover
         pos_mouse = pygame.mouse.get_pos()
         
         # Dibujar las tarjetas para cada uno de los 6 fantasmas
@@ -171,13 +171,13 @@ class Renderer:
             ya_asignado = nombre in asignados
             en_hover = rect_base.collidepoint(pos_mouse)
             
-            # --- LÓGICA DE ANIMACIÓN DE LA TARJETA ---
+            # Logica de animacion
             if en_hover and not ya_asignado:
                 # La tarjeta "salta" hacia adelante (se agranda un poquito)
                 offset = 4
                 rect_dibujo = rect_base.inflate(offset * 2, offset * 2)
                 
-                # Brillo de neón calculando la interpolación hacia el blanco
+                # Brillo de neon calculando la interpolación hacia el blanco
                 r = min(255, color_fantasma[0] + int(100 * pulso))
                 g = min(255, color_fantasma[1] + int(100 * pulso))
                 b = min(255, color_fantasma[2] + int(100 * pulso))
@@ -199,7 +199,7 @@ class Renderer:
             pygame.draw.rect(self.pantalla, fondo_tarjeta, rect_dibujo, border_radius=12)
             pygame.draw.rect(self.pantalla, color_borde, rect_dibujo, width=grosor_borde, border_radius=12)
             
-            # --- DIBUJO DEL ICONO (ESFERA) ---
+            # dibujo esfera
             centro_icono = (rect_dibujo.x + 35, rect_dibujo.y + rect_dibujo.height // 2)
             
             if ya_asignado:
@@ -216,11 +216,11 @@ class Renderer:
             if not ya_asignado:
                 pygame.draw.circle(self.pantalla, (255, 255, 255), (centro_icono[0] - 4, centro_icono[1] - 4), radio // 3)
             
-            # --- TEXTOS ---
+            # texto
             color_texto = self.colores["blanco"] if not ya_asignado else (100, 100, 100)
             texto_nombre = fuente_txt.render(nombre, True, color_texto)
             
-            # Ajustamos la posición vertical del nombre dependiendo de si hay subtítulo
+            # Ajustamos la posicion vertical del nombre dependiendo de si hay subtítulo
             pos_y_texto = rect_dibujo.y + 12 if ya_asignado else rect_dibujo.y + (rect_dibujo.height // 2) - 8
             self.pantalla.blit(texto_nombre, (rect_dibujo.x + 65, pos_y_texto))
             
