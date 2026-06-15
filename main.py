@@ -1,11 +1,9 @@
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-
 import numpy as np
 import pygame as py
 import random
 from collections import deque
-
 from blinky import *
 from pinky import *
 from clyde import *
@@ -19,12 +17,14 @@ from render import *
 from nivel import verificar_nivel_completo, subir_nivel
 
 
+#inicializamos tanto el motor gráfico como de sonido
 py.init()
 py.mixer.init()
 
 tamaño_celda = 20
 fuente_popup  = py.font.SysFont(None, 26)
 
+#usamos un diccionario para almacenar información relevante de las tiles para cuando sean intterpretadas
 config_tiles = {
     "X": {"tipo": "pared",          "color": (0,0,255),     "score": 0,  "es_fijo": True,  "es_solido": True},
     ".": {"tipo": "punto",          "color": (255,255,255), "score": 10, "es_fijo": False, "es_solido": False},
@@ -36,18 +36,30 @@ config_tiles = {
     "T": {"tipo": "tunel",          "color": None,          "score": 0,  "es_fijo": True,  "es_solido": False},
 }
 
+
+
 mapa = Mapa(config_tiles)
 
+#definimos constantes a utilizar
 ui_altura     = 40
 ancho_ventana = mapa.columnas * tamaño_celda
 alto_ventana  = (mapa.filas * tamaño_celda) + ui_altura
-
 screen        = py.display.set_mode((ancho_ventana, alto_ventana))
 renderer      = Renderer(screen, tamaño_celda)
 score_manager = ScoreManager()
-
 pos_pac, pos_bli, pos_pin, pos_ink, pos_cly, pos_patan, pos_negui = mapa.obtener_posiciones_iniciales()
 
+#velocidades (consigna: 100% = 7.5 tiles/segundo)
+BASE              = 7.5
+PASO_PAC_NORMAL   = 1.0 / (BASE * 0.80)
+PASO_PAC_POWER    = 1.0 / (BASE * 0.90)
+PASO_F_NORMAL     = 1.0 / (BASE * 0.75)
+PASO_F_TUNEL      = 1.0 / (BASE * 0.40)
+PASO_F_ASUSTADO   = 1.0 / (BASE * 0.50)
+VEL_OJOS          = BASE * 1.50
+
+
+#inicializamos a los personajes
 pacman = pacman(pos_pac)
 blinky = Blinky(direccion=(1, 0),  posicion=pos_bli,   modo="scatter", vida=1)
 pinky  = Pinky (direccion=(0, -1), posicion=pos_pin,   modo="scatter", vida=1)
@@ -64,24 +76,20 @@ mapeo_instancias = {
 fantasmas           = []
 fantasmas_en_espera = []
 
-
-
-# Velocidades (consigna: 100% = 7.5 tiles/segundo)
-
-BASE              = 7.5
-PASO_PAC_NORMAL   = 1.0 / (BASE * 0.80)
-PASO_PAC_POWER    = 1.0 / (BASE * 0.90)
-PASO_F_NORMAL     = 1.0 / (BASE * 0.75)
-PASO_F_TUNEL      = 1.0 / (BASE * 0.40)
-PASO_F_ASUSTADO   = 1.0 / (BASE * 0.50)
-VEL_OJOS          = BASE * 1.50
-
-
-def paso_pacman():
+def paso_pacman() -> float:
     return PASO_PAC_POWER if modo_asustado else PASO_PAC_NORMAL
 
 
-def paso_fantasma(f):
+def paso_fantasma(f: any) -> float:
+    """
+    Determina la velocidad actual de un fantasma
+    
+    Args:
+        f (Any): La instancia del fantasma a evaluar
+        
+    Returns:
+        float: El tiempo necesario para dar un paso según el modo del fantasma y su posición en el mapa
+    """
     if f.modo == "asustado":
         return PASO_F_ASUSTADO
     col, fila = f.posicion
@@ -92,8 +100,7 @@ def paso_fantasma(f):
 
 
 
-#Ciclo Scatter/Chase
-
+#definimos los cíclos que nos daba el enunciado (scatter/chase)
 ciclo_modos = [
     ("scatter",  7),
     ("chase",   20),
@@ -110,14 +117,11 @@ tiempo_modo = 0.0
 modo_global = ciclo_modos[0][0]
 
 
-
-#Salida sector de los fantasmas
-
+#salida sector de los fantasmas
 UMBRALES_SALIDA_BASE = [30, 60, 90]
 
 
 #configuracion de seleccion
-
 esquinas_nombres = ["Arriba-Izquierda", "Arriba-Derecha", "Abajo-Izquierda", "Abajo-Derecha"]
 
 esquinas_scatter_coords = {
@@ -144,8 +148,17 @@ umbrales_salida     = []
 
 
 # funciones auxiliares
-
-def es_solido_para_fantasma(fila, col):
+def es_solido_para_fantasma(fila: int, col: int) -> bool:
+    """
+    Verifica si una celda es sólida para un fantasma pero pueden atravesar las puertas de la Ghost House
+    
+    Args:
+        fila (int): Coordenada Y en la grilla
+        col (int): Coordenada X en la grilla
+        
+    Returns:
+        bool: True si la celda es un obstáculo para el fantasma, False en caso contrario
+    """
     col %= mapa.columnas
     if fila < 0 or fila >= mapa.filas:
         return True
@@ -154,7 +167,17 @@ def es_solido_para_fantasma(fila, col):
     return mapa.es_solido(fila, col)
 
 
-def encontrar_camino(inicio, destino):
+def encontrar_camino(inicio: tuple, destino: tuple) -> list :
+    """
+    Busqueda para encontrar el camino más corto desde un punto de inicio hasta un destino en la grilla.
+    
+    Args:
+        inicio (tuple): Coordenada (col, fila) de partida
+        destino (tuple): Coordenada (col, fila) objetivo
+        
+    Returns:
+        List(tuple): Lista de coordenadas que forman el camino hacia el destino
+    """
     if inicio == destino:
         return [inicio]
     cola   = deque([inicio])
@@ -178,7 +201,19 @@ def encontrar_camino(inicio, destino):
     return [inicio, destino]
 
 
-def elegir_mejor_direccion(fantasma, target_x, target_y):
+def elegir_mejor_direccion(fantasma: any, target_x: int, target_y: int) -> tuple:
+    """
+    Calcula la mejor dirección ortogonal para acercarse a un objetivo minimizando 
+    la distancia euclidiana que decia el enunciado
+    
+    Args:
+        fantasma (Any): La instancia del fantasma que se mueve
+        target_x (int): Coordenada X del objetivo
+        target_y (int): Coordenada Y del objetivo
+        
+    Returns:
+        tuple|none: La tupla (dx, dy) óptima, o None
+    """
     opuesta    = (-fantasma.direccion[0], -fantasma.direccion[1])
     mejor_dir  = None
     menor_dist = float("inf")
@@ -198,7 +233,19 @@ def elegir_mejor_direccion(fantasma, target_x, target_y):
     return mejor_dir
 
 
-def elegir_direccion_huyendo(fantasma, pac_x, pac_y):
+def elegir_direccion_huyendo(fantasma: any, pac_x: int, pac_y: int) -> tuple:
+    """
+    Calcula la dirección ortogonal para alejarse de Pac-Man maximizando
+    la distancia euclidiana, usado cuando los fantasmas están asustados
+    
+    Args:
+        fantasma (Any): La instancia del fantasma que huye
+        pac_x (int): Coordenada X de Pac-Man
+        pac_y (int): Coordenada Y de Pac-Man
+        
+    Returns:
+        Optional(tuple): La tupla directriz (dx, dy) óptima para huir
+    """
     opuesta    = (-fantasma.direccion[0], -fantasma.direccion[1])
     mejor_dir  = None
     mayor_dist = -1
@@ -218,7 +265,17 @@ def elegir_direccion_huyendo(fantasma, pac_x, pac_y):
     return mejor_dir
 
 
-def elegir_target_fantasma(f):
+def elegir_target_fantasma(f: any) -> tuple:
+    """
+    Delega la obtención de la celda objetivo del fantasma según su comportamiento 
+    característico y el estado actual del juego
+    
+    Args:
+        f (Any): El fantasma para el cual se busca objetivo
+        
+    Returns:
+        tuple: Coordenadas (X, Y) hacia donde el fantasma intentará ir
+    """
     if f.modo == "scatter":
         return f.esquina_scatter
     if f.nombre == "Inky":
@@ -231,7 +288,17 @@ def verificar_colision(pacman, fantasma):
     return pacman.posicion == fantasma.posicion
 
 
-def resolver_colision(f):
+def resolver_colision(f: any) -> bool:
+    """
+    Maneja las colisiones entre pacman y fantasmas, modifica el puntaje, 
+    genera popups de estado visual o resta vidas
+    
+    Args:
+        f (Any): El fantasma involucrado en la colisión
+        
+    Returns:
+        bool: True si la colisión resultó en la muerte de Pac-Man, False si el fantasma fue devorado
+    """
     global estado, timer_muerte, es_ultima_vida, contador_fantasmas_comidos
 
     if f.modo == "asustado":
@@ -260,7 +327,11 @@ def resolver_colision(f):
         return True
 
 
-def activar_ghost_house():
+def activar_ghost_house() -> None:
+    """
+    Revisa si se cumplen las condiciones de puntaje para liberar fantasmas
+    que se encuentren en espera en la ghost house
+    """
     while fantasmas_en_espera and umbrales_salida and \
           score_manager.puntaje >= umbrales_salida[0]:
         nuevo = fantasmas_en_espera.pop(0)
@@ -272,7 +343,12 @@ def activar_ghost_house():
         fantasmas.append(nuevo)
 
 
-def respawn_jugador():
+def respawn_jugador() -> None:
+    """
+    Devuelve a Pac-Man y a los fantasmas a sus posiciones iniciales despues
+    de que el jugador pierda una vida, reiniciando estados temporales
+    """
+    
     global modo_asustado, contador_tiempo_asustado, contador_fantasmas_comidos
 
     viajes.clear()
@@ -292,7 +368,11 @@ def respawn_jugador():
     contador_fantasmas_comidos = 0
 
 
-def resetear_nivel():
+def resetear_nivel() -> None:
+    """
+    Reinicia la distribución del nivel, posiciones, listas de fantasmas 
+    y fases de comportamiento
+    """
     global modo_asustado, contador_tiempo_asustado, contador_fantasmas_comidos
     global fase_modo, tiempo_modo, modo_global
     global fantasmas_en_espera, umbrales_salida

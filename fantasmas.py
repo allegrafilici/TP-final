@@ -36,7 +36,17 @@ class Fantasma:
         imagen = py.image.load(ruta).convert_alpha()
         return py.transform.scale(imagen, (24, 24))
 
-    def cargar_animaciones(self, nombre, ruta_imagen):
+    def cargar_animaciones(self, nombre: str, ruta_imagen: str) -> dict:
+        """
+        Organiza y carga los distintos frames de animación según la dirección y el modo
+        
+        Args:
+            nombre (str): Nombre del fantasma para buscar su carpeta específica
+            ruta_imagen (str): Ruta de fallback en caso de no encontrar animaciones
+            
+        Returns:
+            dict[str, List[py.Surface]]: Diccionario con listas de imágenes para cada estado
+        """
         imagen_base = self.cargar_imagen(ruta_imagen)
         animaciones = {
             "derecha":   [imagen_base, imagen_base],
@@ -80,7 +90,14 @@ class Fantasma:
                 ]
         return animaciones
 
-    def movimiento(self, limite_columnas=None):
+    def movimiento(self, limite_columnas: int = None) -> None:
+        """
+        Desplaza al fantasma una celda en su dirección actual, manejando 
+        opcionalmente el cruce por los túneles del mapa (efecto pac-man)
+        
+        Args:
+            limite_columnas (int): Cantidad de columnas para calcular el wrapping.
+        """
         col, fila = self.posicion
         nueva_col = col + self.direccion[0]
         if limite_columnas is not None:
@@ -88,12 +105,12 @@ class Fantasma:
         self.posicion = (nueva_col, fila + self.direccion[1])
         self.actualizar_animacion()
 
-    def cambiar_direccion(self, nueva_direccion):
+    def cambiar_direccion(self, nueva_direccion: tuple) -> None:
         self.direccion = nueva_direccion
 
-    def invertir_direccion(self):
+    def invertir_direccion(self) -> None:
         """
-        Invierte la direccion actual del fantasma (da la vuelta).
+        Invierte la direccion actual del fantasma (da la vuelta)
 
         En el Pac-Man original, los fantasmas invierten su direccion
         inmediatamente cada vez que cambian de modo (scatter → chase
@@ -103,13 +120,19 @@ class Fantasma:
         """
         self.direccion = (-self.direccion[0], -self.direccion[1])
 
-    def cambiar_modo(self, modo_nuevo):
+    def cambiar_modo(self, modo_nuevo: str) -> None:
+        """
+        Modifica el estado de comportamiento y reinicia la secuencia de animación
+        
+        Args:
+            modo_nuevo (str): El nuevo estado a adoptar
+        """
         self.modo            = modo_nuevo
         self.frame_actual    = 0
         self.contador_animacion = 0
         self.parpadeando     = False
 
-    def reiniciar(self):
+    def reiniciar(self) -> None:
         """Reseteo completo: posicion, modo, estado visual y acumulador."""
         self.posicion           = self.posicion_inicial
         self.modo               = "scatter"
@@ -120,23 +143,30 @@ class Fantasma:
         self.progreso_aparicion = 0.0
         self.acumulador         = 0.0
 
-    def reiniciar_posicion(self):
+    def reiniciar_posicion(self) -> None:
         self.posicion = self.posicion_inicial
 
-    def obtener_direccion_texto(self):
+    def obtener_direccion_texto(self) -> str:
         if self.direccion == (1,  0): return "derecha"
         if self.direccion == (-1, 0): return "izquierda"
         if self.direccion == (0, -1): return "arriba"
         if self.direccion == (0,  1): return "abajo"
         return "derecha"
 
-    def actualizar_animacion(self):
+    def actualizar_animacion(self) -> None:
         self.contador_animacion += 1
         if self.contador_animacion >= self.velocidad_animacion:
             self.contador_animacion = 0
             self.frame_actual = (self.frame_actual + 1) % 2
 
-    def decidir_direccion(self, pacman, blinky=None):
+    def decidir_direccion(self, pacman: any, blinky: any = None) -> None:
+        """
+        Calcula la dirección que el fantasma debe tomar basándose en su objetivo actual
+        
+        Args:
+            pacman (Any): Referencia a la instancia del jugador.
+            blinky (any): Referencia a Blinky, requerida específicamente por la lógica de Inky.
+        """
         if self.nombre == "Inky":
             target_x, target_y = self.elegir_target(pacman, blinky)
         else:
@@ -150,7 +180,14 @@ class Fantasma:
     def elegir_target(self, pacman, blinky=None):
         pass
 
-    def _dibujar_aparicion(self, pantalla, tamano_tile):
+    def _dibujar_aparicion(self, pantalla: py.Surface, tamano_tile: int) -> None:
+        """
+        Renderiza la animación de escalado cuando el fantasma sale de la Ghost House
+        
+        Args:
+            pantalla (py.Surface): Superficie principal donde dibujar
+            tamano_tile (int): Tamaño en píxeles de cada celda
+        """
         escala        = 1.0 - (1.0 - self.progreso_aparicion) ** 2
         tamano_actual = max(2, int(24 * escala))
         dir_texto     = self.obtener_direccion_texto()
@@ -160,7 +197,14 @@ class Fantasma:
         cy = self.posicion[1] * tamano_tile + tamano_tile // 2
         pantalla.blit(imagen_sc, (cx - tamano_actual // 2, cy - tamano_actual // 2))
 
-    def dibujar(self, pantalla, tamano_tile=20):
+    def dibujar(self, pantalla: py.Surface, tamano_tile: int = 20) -> None:
+        """
+        Controla la lógica de dibujo del fantasma en su estado normal o asustado
+        
+        Args:
+            pantalla (py.Surface): Superficie principal de renderizado
+            tamano_tile (int): Dimensión de cada celda para calcular la posición en píxeles
+        """
         if self.oculto:
             return
         if self.apareciendo:
@@ -195,15 +239,21 @@ class ScoreManager:
         self.vidas = 3
         self.nivel = 1
 
-    def sumar_puntaje(self, cantidad):
+    def sumar_puntaje(self, cantidad: int) -> None:
+        """
+        Incrementa la puntuación y actualiza el récord en disco si se supera la marca anterior.
+        
+        Args:
+            cantidad (int): Puntos a sumar.
+        """
         self.puntaje += cantidad
         if self.puntaje > self.high_score:
             self.high_score = self.puntaje
             with open("highscore.txt", "w") as f:
                 f.write(str(self.high_score))
 
-    def restar_vidas(self):
+    def restar_vidas(self) -> None:
         self.vidas -= 1
 
-    def sumar_vidas(self):
+    def sumar_vidas(self) -> None:
         self.vidas += 1
